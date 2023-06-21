@@ -42,13 +42,25 @@ class IdentifierConverter:
                 - is_single_character: Whether `latex` can be treated as a single
                     character or not.
         """
-        if self._use_math_symbols and name in expression_rules.MATH_SYMBOLS:
-            return "\\" + name, True
+
+        parts = name.split("_")
+
+        if len(parts) > 1:
+            other = "_".join(parts[1:])
+            other = self.convert(other)[0]
+            return self.convert(parts[0])[0] + "_{" + other + "}", False
+
+        if self._use_math_symbols:
+
+            try:
+                return "\\" + expression_rules.MATH_SYMBOLS[name], True
+
+            except KeyError:
+                pass
 
         if len(name) == 1 and name != "_":
             return name, True
 
-        escaped = name.replace("_", r"\_")
-        wrapped = rf"\mathrm{{{escaped}}}" if self._use_mathrm else escaped
+        wrapped = rf"\mathrm{{{name}}}" if self._use_mathrm else name
 
         return wrapped, False
